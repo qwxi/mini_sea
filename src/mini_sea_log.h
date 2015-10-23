@@ -1,7 +1,7 @@
 #ifndef _MINI_SEA_LOG_H_INCLUDE__
 #define _MINI_SEA_LOG_H_INCLUDE__
 
-typedef void (*log)(int level, char *content,  );
+typedef void (*log)(int level, char *content, int len );
 
 extern void * getshmaddr(const char *shmkeypath, size_t size);
 extern int    getqueue(const char *queuekeypath);
