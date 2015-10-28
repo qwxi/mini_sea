@@ -324,6 +324,9 @@ sdinfo   *sdptr;
                 {
                       do{
                            close(sdptr->sd);
+                           sdptr->read.len = 0;
+                           sdptr->wirte.len = 0;
+
                            sdptr = sdptr->next;
                       }while(sdptr != NULL)
 
