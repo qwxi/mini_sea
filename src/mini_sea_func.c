@@ -94,6 +94,7 @@ int rcv_and_snd(const char *shmaddr, int msgid, int sd)
     int nfds = 0;
     int n = 0;
     int fsd = 0;  /*used for loop sd*/
+    int timeout = -1;
     msgbuf msg;
 
     struct epoll_event ev, events[MINI_SEA_EVENT_COUNT]; 
@@ -116,7 +117,7 @@ int rcv_and_snd(const char *shmaddr, int msgid, int sd)
 
     for(;;)
     {
-        nfds = epoll_wait(ed, events, MINI_SEA_EVENT_COUNT, -1);
+        nfds = epoll_wait(ed, events, MINI_SEA_EVENT_COUNT, timeout);
         if (nfds == -1) {
             printf("epoll_wait fail[%s]\n",strerror(errno));
             return -1;
@@ -127,6 +128,20 @@ int rcv_and_snd(const char *shmaddr, int msgid, int sd)
             fsd = events[n].data.fd;
             if(sd == fsd)
             {
+
+struct timeval tv;
+timedata *td = malloc(sizeof(timedata));
+sdinfo  sdlink;
+                sdlink.next = NULL;
+                memset(&td, 0, sizeof(timedata));
+                ret = gettimeofday(tv, NULL);
+                if(ret < 0)
+                {
+                    printf("gettimeofday fail [%s]\n", strerror(errno));
+                    return -1;
+                }
+                td->key = tv.tv_sec;
+         
                 for(;;)
                 {
                     conn_sock = accept(sd, NULL, NULL);
@@ -141,6 +156,9 @@ int rcv_and_snd(const char *shmaddr, int msgid, int sd)
                             continue;
                         }
                     }
+                    sdlist[conn_sock].sd = conn_sock; /*close fd as soon possible bye timeout*/ 
+                    sdlist[coon_sock].next = NULL;
+                    sdlink.next = &(sdlist[conn_sock]);
                     ret = set_socket_non_blocking(conn_sock); 
                     if(ret < 0)
                     {
@@ -158,6 +176,13 @@ int rcv_and_snd(const char *shmaddr, int msgid, int sd)
                         continue;
                     }
                 }/*for(;;)*/
+                if(sdlink.next != NULL)
+                {
+                    td.link = sdlink.next;
+                    ret = timedata_insert(&timetree, td);
+                    if(ret < 1)                  
+                        printf("timedata_insert may be fail\n");
+                }
             }/*sd == events[n].data.fd*/
             else if(events[n].events & EPOLLIN)
             {
@@ -262,6 +287,55 @@ int rcv_and_snd(const char *shmaddr, int msgid, int sd)
                 }
             }
         }/*while( 1 )*/
+
+
+
+            
+struct timeval tv ;
+timedata *td = NULL;
+sdinfo   *sdptr;
+
+            ret = gettimeofday(tv, NULL);
+            if(ret < 0)
+            {
+                printf("gettimeofday fail [%s]\n", strerror(errno));
+                return -1;
+            }
+
+            do{
+                td = getmin(&timetree);         
+                if(td == NULL)
+                {
+                    timeout = -1;
+                    printf("getmin fail\n");
+                    break;
+                }
+               
+                sdptr = td->link; 
+                if(sdptr == NULL)
+                {
+                    printf("sdptr is null\n");
+                    return -1;
+                }
+  
+                timeout = tv.tv_sec - td->key;              
+                
+                if(timeout >= MINI_SEA_TIMEOUT)
+                {
+                      do{
+                           close(sdptr->sd);
+                           sdptr = sdptr->next;
+                      }while(sdptr != NULL)
+
+                      timedata_delete(&timetree, td); 
+
+                }else{
+                     printf("wait [%d] seconds timeout\n", timeout);
+                     break;
+                }
+
+            }while( 1 ) 
+
     }
 
 
@@ -290,4 +364,63 @@ int set_socket_non_blocking(int sd)
 
    return 0;
     
+}
+
+int timedata_delete(struct rb_root *root, timedata *ptr)
+{
+    rb_erase(&ptr->node, root);
+    return 0;
+}
+
+timedata *getmin(struct rb_root *root)
+{
+    timedata *ptr = NULL;
+    struct rb_node *node = root->rb_node;
+    while(node->left != NULL){
+        node = node->left; 
+    }
+    if(node != NULL) 
+    {
+        ptr = container_of(node, timedata, node); 
+    }
+    return ptr;
+}
+
+int  timedata_insert(struct rb_root *root, timedata *data)
+{
+        time_t result;
+        struct rb_node **new = &(root->rb_node), *parent = NULL;
+
+        /* Figure out where to put new node */
+        while (*new) {
+                timedata *this = container_of(*new, timedata, node);
+
+                result = data->key - this->key;
+
+                parent = *new;
+                if (result < 0)
+                        new = &((*new)->rb_left);
+                else if (result > 0)
+                        new = &((*new)->rb_right);
+                else{
+                        if(this->link == NULL)
+                        {
+                            this->link = data->link;
+                        }else{
+                            sdinfo *ptr = this->link;
+                            while(ptr->next != NULL)
+                            {
+                                ptr = ptr->next;
+                            }
+                            ptr->next = data->link;
+                        }
+                        return 0;
+                }
+        }
+
+        /* Add new node and rebalance tree. */
+        rb_link_node(&data->node, parent, new);
+        rb_insert_color(&data->node, root);
+
+        return 1;
 }

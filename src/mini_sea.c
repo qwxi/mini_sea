@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
     int  msgid = 0;
     int  sd = 0;
 
-    shmaddr = getshmaddr(shmkeypath, sizeof(sdinfo) * MINI_SEA_SD_COUNT);
+    shmaddr = getshmaddr(shmkeypath, sizeof(sdinfo) * MINI_SEA_SD_COUNT); 
     if(shmaddr == (void *)-1) 
     {
         printf("func getshmaddr fail\n");
