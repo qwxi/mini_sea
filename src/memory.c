@@ -1,15 +1,13 @@
 #include "memory.h"
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 
 void   init(data *head, void *addptr, int size, int num)
 {
      int i ;
+     char *ptr = (char *)addptr;
      head->cursor=-1; 
      for(i=0;i<num;i++)
      {
-         head->list[i] = addptr + size * i;
+         head->list[i] = (ptr + size * i);
          head->cursor++;       
      }
      return ;  
@@ -26,6 +24,10 @@ void   putone(data *head, void *ptr)
      return;
 }
 
+/* used to test main
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 typedef struct{
     int i;
@@ -55,3 +57,4 @@ int main()
 
     return 0;
 }
+*/

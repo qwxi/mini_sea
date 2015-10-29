@@ -109,18 +109,10 @@ static inline struct page * rb_insert_page_cache(struct inode * inode,
         (type *)( (char *)__mptr - offsetof(type,member) );})
 
 
-
 /*
 2.6.33#include <linux/stddef.h>
 */
-
-#undef NULL
-#if defined(__cplusplus)
-#define NULL 0
-#else
-#define NULL ((void *)0)
-#endif
-
+#include <linux/stddef.h>
 
 enum {
         false   = 0,
@@ -150,7 +142,6 @@ struct rb_root
 {
 	struct rb_node *rb_node;
 };
-
 
 #define rb_parent(r)   ((struct rb_node *)((r)->rb_parent_color & ~3))
 #define rb_color(r)   ((r)->rb_parent_color & 1)

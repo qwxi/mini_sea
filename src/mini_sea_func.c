@@ -1,5 +1,6 @@
-#include "mini_sea.h"
+#include "mini_sea_func.h"
 
+static struct rb_root timetree = RB_ROOT;
 
 void *getshmaddr(const char *shmkeypath, size_t size)
 {
@@ -9,7 +10,7 @@ key_t shm = 0;
     if(shm < 0)
     {
         printf("ftok fail [%s]",strerror(errno));
-        return -1;
+        return NULL;
     }
 
 int shmid = 0;
@@ -17,7 +18,7 @@ int shmid = 0;
     if(shmid < 0)
     {
         printf("shmget fail[%s]", strerror(errno));
-        return -1;
+        return NULL;
     }
 
 void *base = NULL;
@@ -25,7 +26,7 @@ void *base = NULL;
     if(base == (void *)-1)
     {
         printf("shmat fail[%s]", strerror(errno));
-        return -1;
+        return NULL;
     }
 
     return base;
@@ -42,7 +43,7 @@ key_t queue = 0;
     }
 
 int msgid = 0;   
-    msgid = msgget(msgkey, 0666 | IPC_CREAT);
+    msgid = msgget(queue, 0666 | IPC_CREAT);
     if(msgid < 0)
     {
         printf("msgget fail [%s]",strerror(errno));
@@ -84,10 +85,10 @@ int getsocket(void)
     return sd;
 }
 
-int rcv_and_snd(const char *shmaddr, int msgid, int sd)
+int rcv_and_snd(const char *shmaddr, int msgid_in, int msgid_out, int sd)
 {
 
-    sdinfo *sdlist =  shmaddr;
+    sdinfo *sdlist =  (sdinfo *)shmaddr;
     int ed = 0;
     int ret = 0;
     int write_count = 0;
@@ -108,8 +109,8 @@ int rcv_and_snd(const char *shmaddr, int msgid, int sd)
 
     ev.events = EPOLLIN | EPOLLET;
     ev.data.fd = sd;
-    iRet = epoll_ctl(ed, EPOLL_CTL_ADD, sd, &ev);
-    if(iRet < 0)
+    ret = epoll_ctl(ed, EPOLL_CTL_ADD, sd, &ev);
+    if(ret < 0)
     {
         printf("epoll_ctl fail[%s]\n",strerror(errno));
         return -1;
@@ -134,7 +135,7 @@ timedata *td = malloc(sizeof(timedata));
 sdinfo  sdlink;
                 sdlink.next = NULL;
                 memset(&td, 0, sizeof(timedata));
-                ret = gettimeofday(tv, NULL);
+                ret = gettimeofday(&tv, NULL);
                 if(ret < 0)
                 {
                     printf("gettimeofday fail [%s]\n", strerror(errno));
@@ -142,6 +143,7 @@ sdinfo  sdlink;
                 }
                 td->key = tv.tv_sec;
          
+int conn_sock = -1;
                 for(;;)
                 {
                     conn_sock = accept(sd, NULL, NULL);
@@ -157,7 +159,7 @@ sdinfo  sdlink;
                         }
                     }
                     sdlist[conn_sock].sd = conn_sock; /*close fd as soon possible bye timeout*/ 
-                    sdlist[coon_sock].next = NULL;
+                    sdlist[conn_sock].next = NULL;
                     sdlink.next = &(sdlist[conn_sock]);
                     ret = set_socket_non_blocking(conn_sock); 
                     if(ret < 0)
@@ -166,7 +168,7 @@ sdinfo  sdlink;
                         close(conn_sock);
                         continue;
                     }
-                    ev.events = EPOLLIN | EPOLLLET;
+                    ev.events = EPOLLIN | EPOLLET;
                     ev.data.fd = conn_sock;
                     ret = epoll_ctl(ed, EPOLL_CTL_ADD, conn_sock, &ev);
                     if(ret < 0)
@@ -178,7 +180,7 @@ sdinfo  sdlink;
                 }/*for(;;)*/
                 if(sdlink.next != NULL)
                 {
-                    td.link = sdlink.next;
+                    td->link = sdlink.next;
                     ret = timedata_insert(&timetree, td);
                     if(ret < 1)                  
                         printf("timedata_insert may be fail\n");
@@ -200,14 +202,14 @@ sdinfo  sdlink;
                             break;
                         }else{
                             printf("read fail [%d:%s] and continue\n", fsd, strerror(errno));
-                            continue
+                            continue;
                         }
                     }else{
                         sdlist[fsd].read.len+=ret;
                     }
                 }
                 msg.mtype = fsd;
-                ret = msgsnd(msgid, (void)&msg, 0, IPC_NOWAIT); 
+                ret = msgsnd(msgid_in, (void *)&msg, 0, IPC_NOWAIT); 
                 if(ret < 0)
                 {
                     printf("msgsnd fail [%d:%s]\n", fsd, strerror(errno));
@@ -218,7 +220,7 @@ sdinfo  sdlink;
                 printf("meet event OUT\n");
                 for(;;) 
                 {
-                    ret = write(fsd, sdlist[fsd].write.buf+write_count, sdlist[fsd].wirte.len); 
+                    ret = write(fsd, sdlist[fsd].write.buf+write_count, sdlist[fsd].write.len); 
                     if(ret <  0)
                     {
                         if(errno == EAGAIN || errno ==  EWOULDBLOCK)
@@ -234,9 +236,9 @@ sdinfo  sdlink;
                          }
                          
                     }else{
-                        sdlist[fsd].wirte.len-=ret;
+                        sdlist[fsd].write.len-=ret;
                         write_count +=ret; 
-                        if(sdlist[fsd].wirte.len == 0) break;
+                        if(sdlist[fsd].write.len == 0) break;
                     }
                 }
             }else
@@ -246,7 +248,7 @@ sdinfo  sdlink;
                     printf("meet event PRI\n");
                 }else{
                     close(fsd);
-                    printf("meet event %d and close sd[%s]\n", events[n].events, fsd);        
+                    printf("meet event %d and close sd[%d]\n", events[n].events, fsd);        
                 }
             }
         }/*for (n = 0; n < nfds; ++n)*/
@@ -256,7 +258,7 @@ sdinfo  sdlink;
         {
             printf("Start while loop...\n");
             /*add code here*/
-            ret = msgrcv(msgid, (void *)&msg, 0, IPC_NOWAIT); 
+            ret = msgrcv(msgid_out, (void *)&msg, 0, 0, IPC_NOWAIT); 
             if(ret < 0)
             {
                 printf("msgrcv fail [%d:%s]\n", fsd, strerror(errno));
@@ -281,9 +283,9 @@ sdinfo  sdlink;
                          break; 
                      }
                 }else{
-                     sdlist[fsd].wirte.len-=ret;
+                     sdlist[fsd].write.len-=ret;
                      write_count +=ret; 
-                     if(sdlist[fsd].wirte.len == 0) break;
+                     if(sdlist[fsd].write.len == 0) break;
                 }
             }
         }/*while( 1 )*/
@@ -295,7 +297,7 @@ struct timeval tv ;
 timedata *td = NULL;
 sdinfo   *sdptr;
 
-            ret = gettimeofday(tv, NULL);
+            ret = gettimeofday(&tv, NULL);
             if(ret < 0)
             {
                 printf("gettimeofday fail [%s]\n", strerror(errno));
@@ -325,10 +327,10 @@ sdinfo   *sdptr;
                       do{
                            close(sdptr->sd);
                            sdptr->read.len = 0;
-                           sdptr->wirte.len = 0;
+                           sdptr->write.len = 0;
 
                            sdptr = sdptr->next;
-                      }while(sdptr != NULL)
+                      }while(sdptr != NULL);
 
                       timedata_delete(&timetree, td); 
 
@@ -337,11 +339,11 @@ sdinfo   *sdptr;
                      break;
                 }
 
-            }while( 1 ) 
+            }while( 1 );
 
     }
 
-
+    return 0;
 }
 
 
@@ -379,8 +381,8 @@ timedata *getmin(struct rb_root *root)
 {
     timedata *ptr = NULL;
     struct rb_node *node = root->rb_node;
-    while(node->left != NULL){
-        node = node->left; 
+    while(node->rb_left != NULL){
+        node = node->rb_left; 
     }
     if(node != NULL) 
     {

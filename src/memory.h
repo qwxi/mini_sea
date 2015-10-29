@@ -1,6 +1,8 @@
 #ifndef _MINI_SEA_MEMORY_H_INCLUDE_
 #define _MINI_SEA_MEMORY_H_INCLUDE_
 
+#include <linux/stddef.h>
+
 #define NUM 1000000
 
 typedef struct{
