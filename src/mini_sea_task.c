@@ -3,9 +3,9 @@
 int main(int argc, char *argv[])
 {
     int ret = 0;
-    char *shmkeypath = "/home/wzx/train/20151021/ipckeypath/shm";
-    char *queue_in_keypath = "/home/wzx/train/20151021/ipckeypath/queue_in";
-    char *queue_out_keypath = "/home/wzx/train/20151021/ipckeypath/queue_out";
+    char *shmkeypath = "/home/wzx/train/20151022/mini_sea/ipckeypath/shm";
+    char *queue_in_keypath = "/home/wzx/train/20151022/mini_sea/ipckeypath/queue_in";
+    char *queue_out_keypath = "/home/wzx/train/20151022/mini_sea/ipckeypath/queue_out";
 
     void *shmaddr = NULL;
     int  msgid_in, msgid_out = 0;

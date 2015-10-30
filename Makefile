@@ -53,3 +53,8 @@ objs/mini_sea_log.o:	$(CORE_DEPS) src/mini_sea_log.c
 
 clean:	
 	rm -rf objs/*
+	rm -rf bin/*
+
+install:
+	mv objs/mini_sea bin/
+	mv objs/mini_sea_task bin/

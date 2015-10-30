@@ -134,13 +134,14 @@ struct timeval tv;
 timedata *td =  (timedata *)getone(block_head);
 sdinfo  sdlink;
                 sdlink.next = NULL;
-                memset(&td, 0, sizeof(timedata));
+                memset(td, 0, sizeof(timedata));
                 ret = gettimeofday(&tv, NULL);
                 if(ret < 0)
                 {
                     mlog("gettimeofday fail [%s]\n", strerror(errno));
                     return -1;
                 }
+
                 td->key = tv.tv_sec;
          
 int conn_sock = -1;
