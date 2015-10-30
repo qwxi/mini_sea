@@ -84,6 +84,7 @@ while( 1 )
         mlog("msgsnd fail [%d:%s]\n", fsd, strerror(errno));
         return -1;
     }
+    mlog("Deliver Rsponse Data OK\n");
 
 }
 

@@ -95,7 +95,7 @@ int rcv_and_snd(const char *shmaddr, int msgid_in, int msgid_out, int sd, data *
     int nfds = 0;
     int n = 0;
     int fsd = 0;  /*used for loop sd*/
-    int timeout = -1;
+    int timeout = 500;
     msgbuf msg;
 
     struct epoll_event ev, events[MINI_SEA_EVENT_COUNT]; 
@@ -118,14 +118,21 @@ int rcv_and_snd(const char *shmaddr, int msgid_in, int msgid_out, int sd, data *
 
     for(;;)
     {
+        mlog("Start to epoll_wait.[%d]seconds..",timeout);
+        //nfds = epoll_wait(ed, events, MINI_SEA_EVENT_COUNT, timeout);
         nfds = epoll_wait(ed, events, MINI_SEA_EVENT_COUNT, timeout);
         if (nfds == -1) {
             mlog("epoll_wait fail[%s]\n",strerror(errno));
             return -1;
         }
 
+        mlog("Process have waked up and events[%d]...", nfds);
+
         for (n = 0; n < nfds; ++n)
         {
+
+            mlog("Start to deal event[%d]", n);
+            
             fsd = events[n].data.fd;
             if(sd == fsd)
             {
@@ -205,6 +212,8 @@ int conn_sock = -1;
                             mlog("read fail [%d:%s] and continue\n", fsd, strerror(errno));
                             continue;
                         }
+                    }else if(ret == 0){
+                        break;
                     }else{
                         sdlist[fsd].read.len+=ret;
                     }
@@ -239,7 +248,11 @@ int conn_sock = -1;
                     }else{
                         sdlist[fsd].write.len-=ret;
                         write_count +=ret; 
-                        if(sdlist[fsd].write.len == 0) break;
+                        if(sdlist[fsd].write.len == 0)
+                        {
+                            /*may be we need delete timedata in the timetree*/
+                            break;
+                        }
                     }
                 }
             }else
@@ -257,8 +270,8 @@ int conn_sock = -1;
 
         while( 1 )
         {
-            mlog("Start while loop...\n");
-            /*add code here*/
+            mlog("Start while-loop to deal rsponse data...\n");
+
             ret = msgrcv(msgid_out, (void *)&msg, 0, 0, IPC_NOWAIT); 
             if(ret < 0)
             {
@@ -286,14 +299,18 @@ int conn_sock = -1;
                 }else{
                      sdlist[fsd].write.len-=ret;
                      write_count +=ret; 
-                     if(sdlist[fsd].write.len == 0) break;
+                     if(sdlist[fsd].write.len == 0)
+                     {
+                         /*may be we need delete timedata in the timetree*/
+                         break;
+                     }
                 }
             }
         }/*while( 1 )*/
 
 
 
-            
+/**************************            
 struct timeval tv ;
 timedata *td = NULL;
 sdinfo   *sdptr;
@@ -306,6 +323,7 @@ sdinfo   *sdptr;
             }
 
             do{
+                mlog("Start do-while to deal timeout...");
                 td = getmin(&timetree);         
                 if(td == NULL)
                 {
@@ -313,6 +331,7 @@ sdinfo   *sdptr;
                     mlog("getmin fail\n");
                     break;
                 }
+                mlog("timedata sd[]", td->link->sd);
                
                 sdptr = td->link; 
                 if(sdptr == NULL)
@@ -337,11 +356,14 @@ sdinfo   *sdptr;
                       putone(block_head, td);
 
                 }else{
+                     //timeout = MINI_SEA_TIMEOUT - timeout;
+                     timeout = 500;
                      mlog("wait [%d] seconds timeout\n", timeout);
                      break;
                 }
 
             }while( 1 );
+****************/
 
     }
 
@@ -383,7 +405,7 @@ timedata *getmin(struct rb_root *root)
 {
     timedata *ptr = NULL;
     struct rb_node *node = root->rb_node;
-    while(node->rb_left != NULL){
+    while(node != NULL && node->rb_left != NULL){
         node = node->rb_left; 
     }
     if(node != NULL) 
