@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
     shmaddr = getshmaddr(blockkeypath, sizeof(timedata) * MINI_SEA_SD_COUNT); 
     if(shmaddr == (void *)-1) 
     {
-        printf("func getshmaddr fail\n");
+        mlog("func getshmaddr fail\n");
         return -1;
     }
     memset(shmaddr, 0, sizeof(timedata) * MINI_SEA_SD_COUNT);
@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     shmaddr = getshmaddr(shmkeypath, sizeof(sdinfo) * MINI_SEA_SD_COUNT); 
     if(shmaddr == (void *)-1) 
     {
-        printf("func getshmaddr fail\n");
+        mlog("func getshmaddr fail\n");
         return -1;
     }
     memset(shmaddr, 0, sizeof(sdinfo) * MINI_SEA_SD_COUNT);
@@ -38,21 +38,21 @@ int main(int argc, char *argv[])
     msgid_in = getqueue(queue_in_keypath);
     if(msgid_in < 0) 
     {
-        printf("func getqueue fail\n");
+        mlog("func getqueue fail\n");
         return -1;
     }
 
     msgid_out = getqueue(queue_out_keypath);
     if(msgid_out < 0) 
     {
-        printf("func getqueue fail\n");
+        mlog("func getqueue fail\n");
         return -1;
     }
 
     sd = getsocket();
     if(sd < 0)
     {
-        printf("func getsocket fail\n");
+        mlog("func getsocket fail\n");
         return -1;
     }
  
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
         ret = rcv_and_snd(shmaddr, msgid_in, msgid_out, sd, block_head);
         if(ret < 0)
         {
-            printf("func rcv_and_snd fail\n"); 
+            mlog("func rcv_and_snd fail\n"); 
         }
     }
 

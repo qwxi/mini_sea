@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
     shmaddr = getshmaddr(shmkeypath, sizeof(sdinfo) * MINI_SEA_SD_COUNT);
     if(shmaddr == (void *)-1) 
     {
-        printf("func getshmaddr fail\n");
+        mlog("func getshmaddr fail\n");
         return -1;
     }
     memset(shmaddr, 0, sizeof(sdinfo) * MINI_SEA_SD_COUNT);
@@ -25,14 +25,14 @@ int main(int argc, char *argv[])
     msgid_in = getqueue(queue_in_keypath);
     if(msgid_in < 0) 
     {
-        printf("func getqueue fail\n");
+        mlog("func getqueue fail\n");
         return -1;
     }
 
     msgid_out = getqueue(queue_out_keypath);
     if(msgid_out < 0) 
     {
-        printf("func getqueue fail\n");
+        mlog("func getqueue fail\n");
         return -1;
     }
 
@@ -44,7 +44,7 @@ while( 1 )
     ret = msgrcv(msgid_in, (void *)&msg, 0, 0, 0);
     if(ret < 0)
     {
-        printf("msgrcv fail [%d:%s]\n", fsd, strerror(errno));
+        mlog("msgrcv fail [%d:%s]\n", fsd, strerror(errno));
         return -1;
     }
 
@@ -52,7 +52,7 @@ while( 1 )
     
     
     sdlist[fsd].read.buf[sdlist[fsd].read.len] = '\0';
-    printf("request:[%s]\n", sdlist[fsd].read.buf);
+    mlog("request:[%s]\n", sdlist[fsd].read.buf);
      
     sprintf(sdlist[fsd].write.buf, "HTTP/1.1 200 OK\r\nContent-Length: %d\r\n\r\nHello World",11);
     sdlist[fsd].write.len = strlen(sdlist[fsd].write.buf);
@@ -61,19 +61,19 @@ while( 1 )
     ret =  func(FUNC_BEFORE, &(sdlist[fsd]));
     if(ret < 0)
     {
-        printf("call Func before fail\n");
+        mlog("call Func before fail\n");
     }
 
     ret =  func(FUNC_BUSINESS, &(sdlist[fsd]));
     if(ret < 0)
     {
-        printf("call Func business fail\n");
+        mlog("call Func business fail\n");
     }
 
     ret =  func(FUNC_AFTER, &(sdlist[fsd]));
     if(ret < 0)
     {
-        printf("call Func after fail\n");
+        mlog("call Func after fail\n");
     }
 */
 
@@ -81,7 +81,7 @@ while( 1 )
     ret = msgsnd(msgid_out, (void *)&msg, 0, 0);
     if(ret < 0) 
     {
-        printf("msgsnd fail [%d:%s]\n", fsd, strerror(errno));
+        mlog("msgsnd fail [%d:%s]\n", fsd, strerror(errno));
         return -1;
     }
 

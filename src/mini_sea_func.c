@@ -9,7 +9,7 @@ key_t shm = 0;
     shm = ftok(shmkeypath, 0);
     if(shm < 0)
     {
-        printf("ftok fail [%s]",strerror(errno));
+        mlog("ftok fail [%s]",strerror(errno));
         return NULL;
     }
 
@@ -17,7 +17,7 @@ int shmid = 0;
     shmid = shmget(shm, size, 0666 | IPC_CREAT);
     if(shmid < 0)
     {
-        printf("shmget fail[%s]", strerror(errno));
+        mlog("shmget fail[%s]", strerror(errno));
         return NULL;
     }
 
@@ -25,7 +25,7 @@ void *base = NULL;
     base = shmat(shmid, NULL, 0);
     if(base == (void *)-1)
     {
-        printf("shmat fail[%s]", strerror(errno));
+        mlog("shmat fail[%s]", strerror(errno));
         return NULL;
     }
 
@@ -38,7 +38,7 @@ key_t queue = 0;
     queue = ftok(queuekeypath, 0);
     if(queue < 0)
     {
-        printf("ftok fail [%s]",strerror(errno));
+        mlog("ftok fail [%s]",strerror(errno));
         return -1;
     }
 
@@ -46,7 +46,7 @@ int msgid = 0;
     msgid = msgget(queue, 0666 | IPC_CREAT);
     if(msgid < 0)
     {
-        printf("msgget fail [%s]",strerror(errno));
+        mlog("msgget fail [%s]",strerror(errno));
         return -1;
     }
     
@@ -65,21 +65,21 @@ int getsocket(void)
     int sd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK , 0);
     if(sd < 0)
     {
-        printf("socket fail[%s]\n",strerror(errno));
+        mlog("socket fail[%s]\n",strerror(errno));
         return -1;
     }
 
     iRet = bind(sd, (struct sockaddr *)&saddr, sizeof(struct sockaddr_in));
     if(iRet < 0)
     {
-        printf("bind fail[%s]\n",strerror(errno));
+        mlog("bind fail[%s]\n",strerror(errno));
         return -1;
     }
 
     iRet = listen(sd, 1024);
     if(iRet < 0)
     {
-        printf("listen fail[%s]\n",strerror(errno));
+        mlog("listen fail[%s]\n",strerror(errno));
         return -1;
     }
     return sd;
@@ -103,7 +103,7 @@ int rcv_and_snd(const char *shmaddr, int msgid_in, int msgid_out, int sd, data *
     ed = epoll_create(1);
     if(ed < 0)
     {
-        printf("epoll_create fail[%s]\n",strerror(errno));
+        mlog("epoll_create fail[%s]\n",strerror(errno));
         return -1;
     }
 
@@ -112,7 +112,7 @@ int rcv_and_snd(const char *shmaddr, int msgid_in, int msgid_out, int sd, data *
     ret = epoll_ctl(ed, EPOLL_CTL_ADD, sd, &ev);
     if(ret < 0)
     {
-        printf("epoll_ctl fail[%s]\n",strerror(errno));
+        mlog("epoll_ctl fail[%s]\n",strerror(errno));
         return -1;
     }
 
@@ -120,7 +120,7 @@ int rcv_and_snd(const char *shmaddr, int msgid_in, int msgid_out, int sd, data *
     {
         nfds = epoll_wait(ed, events, MINI_SEA_EVENT_COUNT, timeout);
         if (nfds == -1) {
-            printf("epoll_wait fail[%s]\n",strerror(errno));
+            mlog("epoll_wait fail[%s]\n",strerror(errno));
             return -1;
         }
 
@@ -138,7 +138,7 @@ sdinfo  sdlink;
                 ret = gettimeofday(&tv, NULL);
                 if(ret < 0)
                 {
-                    printf("gettimeofday fail [%s]\n", strerror(errno));
+                    mlog("gettimeofday fail [%s]\n", strerror(errno));
                     return -1;
                 }
                 td->key = tv.tv_sec;
@@ -151,10 +151,10 @@ int conn_sock = -1;
                     {
                         if(errno == EAGAIN || errno == EWOULDBLOCK)
                         {
-                            printf("accept fail [%s]\n", strerror(errno));
+                            mlog("accept fail [%s]\n", strerror(errno));
                             break;
                         }else{
-                            printf("accept continue [%s]\n", strerror(errno));
+                            mlog("accept continue [%s]\n", strerror(errno));
                             continue;
                         }
                     }
@@ -164,7 +164,7 @@ int conn_sock = -1;
                     ret = set_socket_non_blocking(conn_sock); 
                     if(ret < 0)
                     {
-                        printf("set nonblockint sd[%d] fail\n", conn_sock);
+                        mlog("set nonblockint sd[%d] fail\n", conn_sock);
                         close(conn_sock);
                         continue;
                     }
@@ -173,7 +173,7 @@ int conn_sock = -1;
                     ret = epoll_ctl(ed, EPOLL_CTL_ADD, conn_sock, &ev);
                     if(ret < 0)
                     {
-                        printf("epoll_ctl fail[%s]\n", strerror(errno));
+                        mlog("epoll_ctl fail[%s]\n", strerror(errno));
                         close(conn_sock);
                         continue;
                     }
@@ -183,12 +183,12 @@ int conn_sock = -1;
                     td->link = sdlink.next;
                     ret = timedata_insert(&timetree, td);
                     if(ret < 1)                  
-                        printf("timedata_insert may be fail\n");
+                        mlog("timedata_insert may be fail\n");
                 }
             }/*sd == events[n].data.fd*/
             else if(events[n].events & EPOLLIN)
             {
-                printf("meet event IN\n");
+                mlog("meet event IN\n");
                 ret = 0;
                 for(;;)
                 {      /*there is a big problem, */
@@ -198,10 +198,10 @@ int conn_sock = -1;
                     {
                         if(errno == EAGAIN || errno == EWOULDBLOCK)  
                         {
-                            printf("read fail [%d:%s] and break\n", fsd, strerror(errno));
+                            mlog("read fail [%d:%s] and break\n", fsd, strerror(errno));
                             break;
                         }else{
-                            printf("read fail [%d:%s] and continue\n", fsd, strerror(errno));
+                            mlog("read fail [%d:%s] and continue\n", fsd, strerror(errno));
                             continue;
                         }
                     }else{
@@ -212,12 +212,12 @@ int conn_sock = -1;
                 ret = msgsnd(msgid_in, (void *)&msg, 0, IPC_NOWAIT); 
                 if(ret < 0)
                 {
-                    printf("msgsnd fail [%d:%s]\n", fsd, strerror(errno));
+                    mlog("msgsnd fail [%d:%s]\n", fsd, strerror(errno));
                 }
             }else if(events[n].events & EPOLLOUT)
             {
                 write_count = 0;
-                printf("meet event OUT\n");
+                mlog("meet event OUT\n");
                 for(;;) 
                 {
                     ret = write(fsd, sdlist[fsd].write.buf+write_count, sdlist[fsd].write.len); 
@@ -230,7 +230,7 @@ int conn_sock = -1;
                             ret = epoll_ctl(ed, EPOLL_CTL_MOD, fsd, &ev);
                             if(ret < 0)
                             {
-                                 printf("epoll_ctl fail [%d:%s]\n", fsd, strerror(errno));
+                                 mlog("epoll_ctl fail [%d:%s]\n", fsd, strerror(errno));
                             }
                             break; 
                          }
@@ -245,10 +245,10 @@ int conn_sock = -1;
             {
                 if(events[n].events & EPOLLPRI)
                 {
-                    printf("meet event PRI\n");
+                    mlog("meet event PRI\n");
                 }else{
                     close(fsd);
-                    printf("meet event %d and close sd[%d]\n", events[n].events, fsd);        
+                    mlog("meet event %d and close sd[%d]\n", events[n].events, fsd);        
                 }
             }
         }/*for (n = 0; n < nfds; ++n)*/
@@ -256,12 +256,12 @@ int conn_sock = -1;
 
         while( 1 )
         {
-            printf("Start while loop...\n");
+            mlog("Start while loop...\n");
             /*add code here*/
             ret = msgrcv(msgid_out, (void *)&msg, 0, 0, IPC_NOWAIT); 
             if(ret < 0)
             {
-                printf("msgrcv fail [%d:%s]\n", fsd, strerror(errno));
+                mlog("msgrcv fail [%d:%s]\n", fsd, strerror(errno));
                 break;
             }
             fsd = (int)msg.mtype; 
@@ -278,7 +278,7 @@ int conn_sock = -1;
                          ret = epoll_ctl(ed, EPOLL_CTL_MOD, fsd, &ev);
                          if(ret < 0)
                          {
-                             printf("epoll_ctl fail [%d:%s]\n", fsd, strerror(errno));
+                             mlog("epoll_ctl fail [%d:%s]\n", fsd, strerror(errno));
                          }
                          break; 
                      }
@@ -300,7 +300,7 @@ sdinfo   *sdptr;
             ret = gettimeofday(&tv, NULL);
             if(ret < 0)
             {
-                printf("gettimeofday fail [%s]\n", strerror(errno));
+                mlog("gettimeofday fail [%s]\n", strerror(errno));
                 return -1;
             }
 
@@ -309,14 +309,14 @@ sdinfo   *sdptr;
                 if(td == NULL)
                 {
                     timeout = -1;
-                    printf("getmin fail\n");
+                    mlog("getmin fail\n");
                     break;
                 }
                
                 sdptr = td->link; 
                 if(sdptr == NULL)
                 {
-                    printf("sdptr is null\n");
+                    mlog("sdptr is null\n");
                     return -1;
                 }
   
@@ -336,7 +336,7 @@ sdinfo   *sdptr;
                       putone(block_head, td);
 
                 }else{
-                     printf("wait [%d] seconds timeout\n", timeout);
+                     mlog("wait [%d] seconds timeout\n", timeout);
                      break;
                 }
 
@@ -356,7 +356,7 @@ int set_socket_non_blocking(int sd)
    flags = fcntl (sd, F_GETFL, 0);
    if (flags == -1)
    {
-      printf("fcntl fail [%s]\n", strerror(errno));
+      mlog("fcntl fail [%s]\n", strerror(errno));
       return -1;
    }
 
@@ -364,7 +364,7 @@ int set_socket_non_blocking(int sd)
    ret = fcntl (sd, F_SETFL, flags);
    if (ret == -1)
    {
-      printf("fcntl fail [%s]\n", strerror(errno));
+      mlog("fcntl fail [%s]\n", strerror(errno));
       return -1;
    }
 

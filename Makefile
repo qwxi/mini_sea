@@ -12,6 +12,7 @@ CORE_INCS = -I src
 
 objs/mini_sea:	objs/mini_sea.o \
 	objs/mini_sea_func.o \
+	objs/mini_sea_log.o \
 	objs/rbtree.o \
 	objs/memory.o \
 	objs/mini_sea_task.o
@@ -19,6 +20,7 @@ objs/mini_sea:	objs/mini_sea.o \
 	$(LINK) -o objs/mini_sea \
 	objs/mini_sea.o \
 	objs/mini_sea_func.o \
+	objs/mini_sea_log.o \
 	objs/rbtree.o \
 	objs/memory.o
 
@@ -26,6 +28,7 @@ objs/mini_sea:	objs/mini_sea.o \
 	$(LINK) -o objs/mini_sea_task \
 	objs/mini_sea_task.o \
 	objs/mini_sea_func.o \
+	objs/mini_sea_log.o \
 	objs/rbtree.o \
 	objs/memory.o
 
@@ -44,6 +47,9 @@ objs/memory.o:		$(CORE_DEPS) src/memory.c
 
 objs/mini_sea_task.o:	$(CORE_DEPS) src/mini_sea_task.c
 	$(CC) -c $(CFLAGS) $(CORE_INCS) -o objs/mini_sea_task.o src/mini_sea_task.c
+
+objs/mini_sea_log.o:	$(CORE_DEPS) src/mini_sea_log.c
+	$(CC) -c $(CFLAGS) $(CORE_INCS) -o objs/mini_sea_log.o src/mini_sea_log.c
 
 clean:	
 	rm -rf objs/*

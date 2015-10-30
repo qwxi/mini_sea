@@ -28,6 +28,7 @@
 
 #include "rbtree.h"
 #include "memory.h"
+#include "mini_sea_log.h"
 
 #define MINI_SEA_SERVER_PORT	9999
 #define MINI_SEA_STR_LEN	1024*4
