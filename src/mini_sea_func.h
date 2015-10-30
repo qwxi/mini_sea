@@ -27,6 +27,7 @@
 #include <linux/stddef.h>
 
 #include "rbtree.h"
+#include "memory.h"
 
 #define MINI_SEA_SERVER_PORT	9999
 #define MINI_SEA_STR_LEN	1024*4
@@ -64,7 +65,7 @@ typedef struct{
 extern void * getshmaddr(const char *shmkeypath, size_t size);
 extern int    getqueue(const char *queuekeypath);
 extern int    getsocket(void);
-extern int    rcv_and_snd(const char *shmaddr, int msgid_in, int msgid_out, int sd);
+extern int    rcv_and_snd(const char *shmaddr, int msgid_in, int msgid_out, int sd, data *block_head);
 extern int    set_socket_non_blocking(int sd);
 
 

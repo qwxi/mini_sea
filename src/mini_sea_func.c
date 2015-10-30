@@ -85,7 +85,7 @@ int getsocket(void)
     return sd;
 }
 
-int rcv_and_snd(const char *shmaddr, int msgid_in, int msgid_out, int sd)
+int rcv_and_snd(const char *shmaddr, int msgid_in, int msgid_out, int sd, data *block_head)
 {
 
     sdinfo *sdlist =  (sdinfo *)shmaddr;
@@ -131,7 +131,7 @@ int rcv_and_snd(const char *shmaddr, int msgid_in, int msgid_out, int sd)
             {
 
 struct timeval tv;
-timedata *td = malloc(sizeof(timedata));
+timedata *td =  (timedata *)getone(block_head);
 sdinfo  sdlink;
                 sdlink.next = NULL;
                 memset(&td, 0, sizeof(timedata));
@@ -333,6 +333,7 @@ sdinfo   *sdptr;
                       }while(sdptr != NULL);
 
                       timedata_delete(&timetree, td); 
+                      putone(block_head, td);
 
                 }else{
                      printf("wait [%d] seconds timeout\n", timeout);

@@ -3,11 +3,11 @@
 
 #include <linux/stddef.h>
 
-#define NUM 1000000
+#define BLOCKNUM 2000000
 
 typedef struct{
     int cursor;
-    void *list[NUM];
+    void *list[BLOCKNUM];
 }data;
 
 extern void   init(data *head, void *addptr, int size, int num);
