@@ -22,11 +22,11 @@ objs/mini_sea:	objs/mini_sea.o \
 	objs/rbtree.o \
 	objs/memory.o
 
-#
-#	$(LINK) -o objs/mini_sea_task \
-#	objs/mini_sea_task.o \
-#        objs/mini_sea_func.o
-#
+
+	$(LINK) -o objs/mini_sea_task \
+	objs/mini_sea_task.o \
+	objs/rbtree.o \
+	objs/mini_sea_func.o
 
 
 objs/mini_sea.o:	$(CORE_DEPS) src/mini_sea.c
