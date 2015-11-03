@@ -85,7 +85,7 @@ int getsocket(void)
     return sd;
 }
 
-int rcv_and_snd(const char *shmaddr, int msgid_in, int msgid_out, int sd, data *block_head)
+int rcv_and_snd(const char *shmaddr, int msgid_in, int msgid_out, int sd, data *block_head, int fifofd)
 {
 
     sdinfo *sdlist =  (sdinfo *)shmaddr;
@@ -115,6 +115,16 @@ int rcv_and_snd(const char *shmaddr, int msgid_in, int msgid_out, int sd, data *
         mlog("epoll_ctl fail[%s]\n",strerror(errno));
         return -1;
     }
+
+    ev.events = EPOLLIN | EPOLLET;
+    ev.data.fd = fifofd;
+    ret = epoll_ctl(ed, EPOLL_CTL_ADD, fifofd, &ev);
+    if(ret < 0)
+    {
+        mlog("epoll_ctl fail[%s]\n",strerror(errno));
+        return -1;
+    }
+    
 
     for(;;)
     {
@@ -194,6 +204,56 @@ int conn_sock = -1;
                         mlog("timedata_insert may be fail\n");
                 }
             }/*sd == events[n].data.fd*/
+            else if(fifofd == fsd)
+            {
+char buf[PIPE_BUF+1];
+                ret = read(fifofd, buf, PIPE_BUF);
+                if(ret < 0)
+                {
+                    mlog("read fifo fail [%s]", strerror(errno));
+                    continue;
+                }
+
+                while( 1 )
+                {
+                    mlog("Start while-loop to deal rsponse data...\n");
+
+                    ret = msgrcv(msgid_out, (void *)&msg, 0, 0, IPC_NOWAIT); 
+                    if(ret < 0)
+                    {
+                        mlog("msgrcv fail [%d:%s]\n", fsd, strerror(errno));
+                        break;
+                    }
+                    fsd = (int)msg.mtype; 
+                    write_count = 0;
+                    for(;;)
+                    {
+                        ret = write(fsd, sdlist[fsd].write.buf+write_count, sdlist[fsd].write.len);
+                        if(ret < 0)
+                        {
+                            if(errno == EAGAIN || errno ==  EWOULDBLOCK)
+                            {
+                                ev.events = EPOLLOUT | EPOLLET;
+                                ev.data.fd = fsd;
+                                ret = epoll_ctl(ed, EPOLL_CTL_MOD, fsd, &ev);
+                                if(ret < 0)
+                                {
+                                    mlog("epoll_ctl fail [%d:%s]\n", fsd, strerror(errno));
+                                }
+                                break; 
+                            }
+                        }else{
+                            sdlist[fsd].write.len-=ret;
+                            write_count +=ret; 
+                            if(sdlist[fsd].write.len == 0)
+                            {
+                                /*may be we need delete timedata in the timetree*/
+                                break;
+                            }
+                        }
+                    }
+                }/*while( 1 )*/
+            }
             else if(events[n].events & EPOLLIN)
             {
                 mlog("meet event IN\n");
@@ -266,48 +326,6 @@ int conn_sock = -1;
                 }
             }
         }/*for (n = 0; n < nfds; ++n)*/
-
-
-        while( 1 )
-        {
-            mlog("Start while-loop to deal rsponse data...\n");
-
-            ret = msgrcv(msgid_out, (void *)&msg, 0, 0, IPC_NOWAIT); 
-            if(ret < 0)
-            {
-                mlog("msgrcv fail [%d:%s]\n", fsd, strerror(errno));
-                break;
-            }
-            fsd = (int)msg.mtype; 
-            write_count = 0;
-            for(;;)
-            {
-                ret = write(fsd, sdlist[fsd].write.buf+write_count, sdlist[fsd].write.len);
-                if(ret < 0)
-                {
-                     if(errno == EAGAIN || errno ==  EWOULDBLOCK)
-                     {
-                         ev.events = EPOLLOUT | EPOLLET;
-                         ev.data.fd = fsd;
-                         ret = epoll_ctl(ed, EPOLL_CTL_MOD, fsd, &ev);
-                         if(ret < 0)
-                         {
-                             mlog("epoll_ctl fail [%d:%s]\n", fsd, strerror(errno));
-                         }
-                         break; 
-                     }
-                }else{
-                     sdlist[fsd].write.len-=ret;
-                     write_count +=ret; 
-                     if(sdlist[fsd].write.len == 0)
-                     {
-                         /*may be we need delete timedata in the timetree*/
-                         break;
-                     }
-                }
-            }
-        }/*while( 1 )*/
-
 
 
 /**************************            
@@ -453,3 +471,28 @@ int  timedata_insert(struct rb_root *root, timedata *data)
 
         return 1;
 }
+
+int  getfifofd(const char *path, int flag)
+{
+    int fd = 0;
+    int ret = 0;
+    if (access(path, F_OK) == -1)  
+    {  
+        ret = mkfifo(path, 07777);
+        if(ret < 0)
+        {
+            mlog("mkfifo fail [%s]", strerror(errno));
+            return -1;
+        }
+    }
+
+    fd = open(path, flag); 
+    if(fd < 0)
+    {
+        mlog("open fail [%s]", strerror(errno));
+        return -1;
+    }
+
+    return fd;
+}
+

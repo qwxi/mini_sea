@@ -6,6 +6,7 @@ int main(int argc, char *argv[])
     char *shmkeypath = "/home/wzx/train/20151022/mini_sea/ipckeypath/shm";
     char *queue_in_keypath = "/home/wzx/train/20151022/mini_sea/ipckeypath/queue_in";
     char *queue_out_keypath = "/home/wzx/train/20151022/mini_sea/ipckeypath/queue_out";
+    char *fifopath = "/home/wzx/train/20151022/mini_sea/ipckeypath/fifo";
 
     void *shmaddr = NULL;
     int  msgid_in, msgid_out = 0;
@@ -86,6 +87,12 @@ while( 1 )
     }
     mlog("Deliver Rsponse Data OK\n");
 
+    int fifofd = getfifofd(fifopath, O_WRONLY);
+    if(fifofd < 0)
+    {
+         mlog("getfifofd fail");
+    }
+    write(fifofd, "OK", 2);
 }
 
     return 0;

@@ -7,11 +7,13 @@ int main(int argc, char *argv[])
     char *shmkeypath = "/home/wzx/train/20151022/mini_sea/ipckeypath/shm";
     char *queue_in_keypath = "/home/wzx/train/20151022/mini_sea/ipckeypath/queue_in";
     char *queue_out_keypath = "/home/wzx/train/20151022/mini_sea/ipckeypath/queue_out";
+    char *fifopath = "/home/wzx/train/20151022/mini_sea/ipckeypath/fifo";
 
     void *shmaddr = NULL;
     int  msgid_in= 0;
     int  msgid_out= 0;
     int  sd = 0;
+    int  fifofd = 0;
 
     data * block_head = malloc(sizeof(data));    
     memset(block_head, 0, sizeof(data));
@@ -49,6 +51,13 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    fifofd = getfifofd(fifopath, O_RDONLY | O_NONBLOCK); 
+    if(fifofd < 0)
+    {
+        mlog("func getfifofd fail\n");
+        return -1;
+    }
+
     sd = getsocket();
     if(sd < 0)
     {
@@ -58,7 +67,7 @@ int main(int argc, char *argv[])
  
     while( 1 )
     {
-        ret = rcv_and_snd(shmaddr, msgid_in, msgid_out, sd, block_head);
+        ret = rcv_and_snd(shmaddr, msgid_in, msgid_out, sd, block_head, fifofd);
         if(ret < 0)
         {
             mlog("func rcv_and_snd fail\n"); 

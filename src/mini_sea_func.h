@@ -17,6 +17,7 @@
 #include <sys/time.h>
 
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include <unistd.h>
@@ -25,6 +26,8 @@
 #include <sys/epoll.h>
 
 #include <linux/stddef.h>
+
+#include <linux/limits.h>
 
 #include "rbtree.h"
 #include "memory.h"
@@ -66,12 +69,14 @@ typedef struct{
 extern void * getshmaddr(const char *shmkeypath, size_t size);
 extern int    getqueue(const char *queuekeypath);
 extern int    getsocket(void);
-extern int    rcv_and_snd(const char *shmaddr, int msgid_in, int msgid_out, int sd, data *block_head);
+extern int    rcv_and_snd(const char *shmaddr, int msgid_in, int msgid_out, int sd, data *block_head, int fifofd);
 extern int    set_socket_non_blocking(int sd);
 
 
 extern int    timedata_delete(struct rb_root *root, timedata *data);
 extern int    timedata_insert(struct rb_root *root, timedata *data);
 extern timedata *  getmin(struct rb_root *root);
+
+extern int    getfifofd(const char *path, int flag);
 
 #endif  /*_MINI_SEA_FUNC_H_INCLUDE_*/
