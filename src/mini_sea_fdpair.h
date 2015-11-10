@@ -6,6 +6,7 @@
 #include <string.h>
 #include <errno.h>
 
+#include "mini_sea_log.h"
 
 extern int getfdpair(int *fd);
 

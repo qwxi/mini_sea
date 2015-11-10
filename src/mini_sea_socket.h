@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+#include "mini_sea_log.h"
 
 typedef uint16_t porttype;
 

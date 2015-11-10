@@ -7,6 +7,7 @@
 #include <string.h>
 #include <errno.h>
 
+#include "mini_sea_log.h"
 
 extern int  getqueue(const char *keypath);
 

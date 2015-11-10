@@ -20,8 +20,8 @@
 #define LOGBUFLEN 64
 #define EXTRLEN   32
 
-static char *logfilename = NULL;
-static pid_t pid = 0;
+extern char *logfilename;
+extern pid_t pid;
 
 extern int   mloginit(const char *logfilename);
 

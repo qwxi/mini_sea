@@ -8,6 +8,8 @@
 #include <errno.h>
 #include <stdio.h>
 
+#include "mini_sea_log.h"
+
 #include "mini_sea_data.h"
 
 extern int  rcvtask(int msgid, void *msg, size_t len, sdinfo *sf);

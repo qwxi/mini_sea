@@ -1,5 +1,8 @@
 #include "mini_sea_log.h"
 
+char *logfilename = NULL;
+pid_t pid = 0;
+
 int   mloginit(const char *logdir)
 {
      pid = getpid();
@@ -39,7 +42,7 @@ void  mlog(const char *fmt, ...)
                 local->tm_min,        \
                 local->tm_sec, log); 
 */
-     sprintf(buf, "\n%d:%d %d [%s]", tv.tv_sec, tv.tv_usec, pid, log);
+     sprintf(buf, "\n%ld:%ld %d [%s]", tv.tv_sec, tv.tv_usec, pid, log);
 
      int fd = open(logfilename, O_RDWR | O_CREAT | O_APPEND , S_IRWXU );  
      write(fd, buf, LOGBUFLEN + EXTRLEN);

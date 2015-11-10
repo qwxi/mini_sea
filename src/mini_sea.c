@@ -1,6 +1,15 @@
+#include <stdio.h>
+#include <stdlib.h>
 
+#include "mini_sea_data.h"
+#include "mini_sea_fdpair.h"
+#include "mini_sea_log.h"
+#include "mini_sea_queue.h"
+#include "mini_sea_shm.h"
+#include "mini_sea_socket.h"
+#include "mini_sea_task.h"
 
-int main(int argc, char *argv)
+int main(int argc, char *argv[])
 {
 
     int fdpair[2];
@@ -21,7 +30,6 @@ int main(int argc, char *argv)
         printf("mloginit error\n"); 
         return -1;
     }
-
 
     mlog("System[mini_sea] start to init resourse");    
 
@@ -46,7 +54,7 @@ int main(int argc, char *argv)
         return -1;
     }
 
-    shmaddr = getshm(shm_keypath, sizeof(sdinfo) * MINI_SEA_SD_COUNT);
+    char *shmaddr = getshm(shm_keypath, sizeof(sdinfo) * MINI_SEA_SD_COUNT);
     if(shmaddr == NULL)
     {
         mlog("getshm error [suggest os ipc-shm]");
@@ -77,6 +85,8 @@ int main(int argc, char *argv)
 
     mlog("System[mini_sea] resourse has been configed!!!");    
 
+int sun = 0;
+
     pid_t pid = fork();
     if(pid < 0)
     {
@@ -100,6 +110,7 @@ int main(int argc, char *argv)
          /*child process code*/
 
 #define TASKNUM 2
+int i = 0;
 
         for(i = 0; i < TASKNUM; i++)
         {
@@ -149,21 +160,28 @@ sdinfo *sdlist = (sdinfo *)shmaddr;
 
     }else{
          /*father process code*/
-      
-         sd = getsocket();
+
+#define SERVER_PORT 9999 
+
+         int sd = getserversocket(SERVER_PORT);
          if(sd < 0)
          {
-             mlog("getsocket error [suggest check os port\n");
+             mlog("getserversocket error [suggest check os port\n");
              return -1;
          }
 
+#include <unistd.h>
+
          while(1)
          {
-             ret = core(shmaddr, msgid_in, msgid_out, sd, );
+             sleep(10000);
+/*
+             ret = core(shmaddr, queue_in, queue_out, sd );
              if(ret < 0)
              {
                  mlog("core error [sugget check log]\n");
              }
+*/
          }
 
     }

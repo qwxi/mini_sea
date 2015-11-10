@@ -7,6 +7,8 @@
 #include <errno.h>
 #include <string.h>
 
+#include "mini_sea_log.h"
+
 extern void * getshm(const char *keypath, size_t size);
 
 #endif /*_MINI_SEA_SHM_H_INCLUDE_*/

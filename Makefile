@@ -17,8 +17,8 @@ CORE_INCS = -I src
 
 
 objs/mini_sea:	objs/mini_sea.o \
-	objs/mini_sea_fdpair.o \
 	objs/mini_sea_log.o  \
+	objs/mini_sea_fdpair.o \
 	objs/mini_sea_queue.o \
 	objs/mini_sea_shm.o \
 	objs/mini_sea_socket.o \
@@ -27,8 +27,8 @@ objs/mini_sea:	objs/mini_sea.o \
 
 	$(LINK) -o objs/mini_sea \
 	objs/mini_sea.o \
-	objs/mini_sea_fdpair.o \
 	objs/mini_sea_log.o  \
+	objs/mini_sea_fdpair.o \
 	objs/mini_sea_queue.o \
 	objs/mini_sea_shm.o \
 	objs/mini_sea_socket.o \
@@ -38,11 +38,11 @@ objs/mini_sea:	objs/mini_sea.o \
 objs/mini_sea.o:	$(CORE_DEPS) src/mini_sea.c
 	$(CC) -c $(CFLAGS) $(CORE_INCS) -o objs/mini_sea.o src/mini_sea.c
 
-objs/mini_sea_fdpair.o:	$(CORE_DEPS) src/mini_sea_fdpair.c
-	$(CC) -c $(CFLAGS) $(CORE_INCS) -o objs/mini_sea_fdpair.o src/mini_sea_fdpair.c
-
 objs/mini_sea_log.o:	$(CORE_DEPS) src/mini_sea_log.c
 	$(CC) -c $(CFLAGS) $(CORE_INCS) -o objs/mini_sea_log.o src/mini_sea_log.c
+
+objs/mini_sea_fdpair.o:	$(CORE_DEPS) src/mini_sea_fdpair.c
+	$(CC) -c $(CFLAGS) $(CORE_INCS) -o objs/mini_sea_fdpair.o src/mini_sea_fdpair.c
 
 objs/mini_sea_queue.o:	$(CORE_DEPS) src/mini_sea_queue.c
 	$(CC) -c $(CFLAGS) $(CORE_INCS) -o objs/mini_sea_queue.o src/mini_sea_queue.c
@@ -62,4 +62,3 @@ clean:
 
 install:
 	mv objs/mini_sea bin/
-	mv objs/mini_sea_task bin/
