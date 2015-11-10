@@ -13,21 +13,21 @@ int  getserversocket(porttype port)
     int sd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK , 0);
     if(sd < 0)
     {
-        mlog("socket fail[%s]\n",strerror(errno));
+        mlog("socket fail[%s]",strerror(errno));
         return -1;
     }
 
     iRet = bind(sd, (struct sockaddr *)&saddr, sizeof(struct sockaddr_in));
     if(iRet < 0)
     {
-        mlog("bind fail[%s]\n",strerror(errno));
+        mlog("bind fail[%s]",strerror(errno));
         return -1;
     }
 
     iRet = listen(sd, 1024);
     if(iRet < 0)
     {
-        mlog("listen fail[%s]\n",strerror(errno));
+        mlog("listen fail[%s]",strerror(errno));
         return -1;
     }
     return sd;
@@ -47,7 +47,7 @@ int setsocketnonblocking(int sd)
    flags = fcntl (sd, F_GETFL, 0);
    if (flags == -1)
    {
-      mlog("fcntl fail [%s]\n", strerror(errno));
+      mlog("fcntl fail [%s]", strerror(errno));
       return -1;
    }
 
@@ -55,7 +55,7 @@ int setsocketnonblocking(int sd)
    ret = fcntl (sd, F_SETFL, flags);
    if (ret == -1)
    {
-      mlog("fcntl fail [%s]\n", strerror(errno));
+      mlog("fcntl fail [%s]", strerror(errno));
       return -1;
    }
 

@@ -127,7 +127,7 @@ int i = 0;
         }
 
         mloginit(logdir);
-        mlog("Process_Task%d [%d] has started to work\n", i, getpid());
+        mlog("Process_Task%d [%d] has started to work", i, getpid());
 
         while(1)         
         {
@@ -166,7 +166,7 @@ sdinfo *sdlist = (sdinfo *)shmaddr;
          int sd = getserversocket(SERVER_PORT);
          if(sd < 0)
          {
-             mlog("getserversocket error [suggest check os port\n");
+             mlog("getserversocket error [suggest check os port");
              return -1;
          }
 
@@ -179,7 +179,7 @@ sdinfo *sdlist = (sdinfo *)shmaddr;
              ret = core(shmaddr, queue_in, queue_out, sd );
              if(ret < 0)
              {
-                 mlog("core error [sugget check log]\n");
+                 mlog("core error [sugget check log]");
              }
 */
          }
