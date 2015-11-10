@@ -39,6 +39,30 @@ int getclientsocket(const char *ip, porttype port)
     return 0;
 }
 
+int setsocketnonblocking(int sd)
+{
+   int flags = 0;
+   int ret = 0;
+
+   flags = fcntl (sd, F_GETFL, 0);
+   if (flags == -1)
+   {
+      mlog("fcntl fail [%s]\n", strerror(errno));
+      return -1;
+   }
+
+   flags |= O_NONBLOCK;
+   ret = fcntl (sd, F_SETFL, flags);
+   if (ret == -1)
+   {
+      mlog("fcntl fail [%s]\n", strerror(errno));
+      return -1;
+   }
+
+   return 0;
+
+}
+
 
 /*
 #include <unistd.h>
