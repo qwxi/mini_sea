@@ -8,6 +8,7 @@
 #include "mini_sea_shm.h"
 #include "mini_sea_socket.h"
 #include "mini_sea_task.h"
+#include "mini_sea_core.h"
 
 int main(int argc, char *argv[])
 {
@@ -54,8 +55,8 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    char *shmaddr = getshm(shm_keypath, sizeof(sdinfo) * MINI_SEA_SD_COUNT);
-    if(shmaddr == NULL)
+    sdinfo *sdlist = (sdinfo *) getshm(shm_keypath, sizeof(sdinfo) * MINI_SEA_SD_COUNT);
+    if(sdlist == NULL)
     {
         mlog("getshm error [suggest os ipc-shm]");
         return -1;
@@ -132,7 +133,6 @@ int i = 0;
         while(1)         
         {
 msgbuf msg;
-sdinfo *sdlist = (sdinfo *)shmaddr;
              ret = rcvtask(queue_in, &msg, 0, sdlist);
              if(ret < 0)
              {
@@ -170,18 +170,12 @@ sdinfo *sdlist = (sdinfo *)shmaddr;
              return -1;
          }
 
-#include <unistd.h>
-
          while(1)
          {
-             sleep(10000);
-/*
-             ret = core(shmaddr, queue_in, queue_out, sd );
-             if(ret < 0)
+             if(core(sdlist, queue_in, queue_out, sd, readfd) < 0)
              {
                  mlog("core error [sugget check log]");
              }
-*/
          }
 
     }
