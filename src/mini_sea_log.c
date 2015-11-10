@@ -15,6 +15,8 @@ int   mloginit(const char *logdir)
 
 void  mlog(const char *fmt, ...)
 {
+     if(logfilename == NULL || pid == 0) return;
+
      char log[LOGBUFLEN+1]  = {0}; 
      char buf[LOGBUFLEN+EXTRLEN]  = {0}; 
 
@@ -37,7 +39,7 @@ void  mlog(const char *fmt, ...)
                 local->tm_min,        \
                 local->tm_sec, log); 
 */
-     sprintf(buf, "%d:%d %d %s\n", tv.tv_sec, tv.tv_usec, pid, log);
+     sprintf(buf, "\n%d:%d %d [%s]", tv.tv_sec, tv.tv_usec, pid, log);
 
      int fd = open(logfilename, O_RDWR | O_CREAT | O_APPEND , S_IRWXU );  
      write(fd, buf, LOGBUFLEN + EXTRLEN);
@@ -56,7 +58,7 @@ int main()
   
     for(i = 0; i < 10000; i++)
     {
-        mlog("log func test %d", getpid);    
+        mlog("log func test %d---%d", getpid, i);    
     }
 
     return 0;

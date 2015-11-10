@@ -17,11 +17,11 @@
 #include <time.h>
 */
 
-#define LOGBUFLEN 1024
+#define LOGBUFLEN 64
 #define EXTRLEN   32
 
-static char *logfilename;
-static pid_t pid;
+static char *logfilename = NULL;
+static pid_t pid = 0;
 
 extern int   mloginit(const char *logfilename);
 
