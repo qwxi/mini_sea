@@ -84,6 +84,8 @@ int core(sdinfo *sdlist, int queue_in, int  queue_out, int sd, int readfd )
                         continue;
                     }
 
+                    mlog("new request socket [%d] incoming", conn_sock);
+
                 }
 /*****************************************/
 
@@ -126,12 +128,17 @@ char sigbuf[SIGBUFLEN + 1];
                         break;
                     }
                     efd = (int)msg.mtype;
+
+                    mlog("Rsponse data for fd[%d] from queue_out[%d]", efd, queue_out);
+
                     int write_count = 0;
                     for(;;)
                     {
                         ret = write(efd, sdlist[efd].write.buf+write_count, sdlist[efd].write.len);
                         if(ret < 0)
                         {
+                            mlog("check other error---[%s] if need to break", strerror(errno));
+                            if(errno == EPIPE) break;
                             if(errno == EAGAIN || errno ==  EWOULDBLOCK)
                             {
                                 ev.events = EPOLLOUT | EPOLLET;
@@ -141,6 +148,7 @@ char sigbuf[SIGBUFLEN + 1];
                                 {
                                     mlog("epoll_ctl fail [%d:%s]", efd, strerror(errno));
                                 }
+                                mlog("write full and fd[%d] recoming epoll", efd);
                                 break;
                             }
                         }else{
@@ -246,6 +254,7 @@ char sigbuf[SIGBUFLEN + 1];
 
         }
         
+        dealsig();
     }
 
     return 0; 

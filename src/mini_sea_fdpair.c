@@ -3,7 +3,7 @@
 int getfdpair(int *fd)
 {
  
-    if(socketpair(AF_UNIX, SOCK_STREAM, 0, fd) < 0)
+    if(socketpair(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK , 0, fd) < 0)
     {
         mlog("socketpair error [%s]", strerror(errno));
         return -1;

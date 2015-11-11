@@ -9,6 +9,7 @@
 #include "mini_sea_socket.h"
 #include "mini_sea_task.h"
 #include "mini_sea_core.h"
+#include "mini_sea_sig.h"
 
 int main(int argc, char *argv[])
 {
@@ -83,6 +84,8 @@ int main(int argc, char *argv[])
         mlog("getfdpair error [suggest check if fd of process%d is avalible]", getpid());
         return -1;
     }
+    
+    configsig();
 
     mlog("System[mini_sea] resourse has been configed!!!");    
 
