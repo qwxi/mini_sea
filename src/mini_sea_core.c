@@ -138,7 +138,7 @@ char sigbuf[SIGBUFLEN + 1];
                         if(ret < 0)
                         {
                             mlog("check other error---[%s] if need to break", strerror(errno));
-                            if(errno == EPIPE) break;
+                            if(errno == EPIPE) {close(efd); break;} /*reading end is closed*/
                             if(errno == EAGAIN || errno ==  EWOULDBLOCK)
                             {
                                 ev.events = EPOLLOUT | EPOLLET;
