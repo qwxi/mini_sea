@@ -161,9 +161,7 @@ msgbuf msg;
     }else{
          /*father process code*/
 
-#define SERVER_PORT 9999 
-
-         int sd = getserversocket(SERVER_PORT);
+         int sd = getserversocket(atoi(getenv("SERVER_PORT")));
          if(sd < 0)
          {
              mlog("getserversocket error [suggest check os port");

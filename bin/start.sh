@@ -3,10 +3,22 @@
 
 #set env
 
-export logdir=/home/wzx/tmp/fromgithup/mini_sea/log
-export shm_keypath=/home/wzx/tmp/fromgithup/mini_sea/ipckeypath/shm
-export queue_in_keypath=/home/wzx/tmp/fromgithup/mini_sea/ipckeypath/queue_in
-export queue_out_keypath=/home/wzx/tmp/fromgithup/mini_sea/ipckeypath/queue_out
+cd ../
+basedir=`pwd`
+cd bin
+
+export logdir=${basedir}/log
+export shm_keypath=${basedir}/ipckeypath/shm
+export queue_in_keypath=${basedir}/ipckeypath/queue_in
+export queue_out_keypath=${basedir}/ipckeypath/queue_out
+
+export SERVER_PORT=9999
+
+#echo ${logdir}
+#echo ${shm_keypath}
+#echo ${queue_in_keypath}
+#echo ${queue_out_keypath}
+#echo  ${SERVER_PORT}
 
 echo "----------------------------------"
 echo "----------------------------------"
