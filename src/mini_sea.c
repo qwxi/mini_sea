@@ -156,10 +156,7 @@ msgbuf msg;
                  mlog("sndtask error and continue");
                  continue;
              }
-             
         }
-
-
 
     }else{
          /*father process code*/

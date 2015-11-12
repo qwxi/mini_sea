@@ -116,7 +116,6 @@ char sigbuf[SIGBUFLEN + 1];
                      }
                 }while(1);
 
-
                 while( 1 )
                 {
                     mlog("Start while-loop to deal rsponse data...");
@@ -137,8 +136,8 @@ char sigbuf[SIGBUFLEN + 1];
                         ret = write(efd, sdlist[efd].write.buf+write_count, sdlist[efd].write.len);
                         if(ret < 0)
                         {
-                            mlog("check other error---[%s] if need to break", strerror(errno));
-                            if(errno == EPIPE) {close(efd); break;} /*reading end is closed*/
+                            mlog("check other error---[%d %s] if need to break", errno,strerror(errno));
+                            if(errno == EPIPE || errno == ECONNRESET || errno == EBADF) {close(efd); break;} /*reading end is closed*/
                             if(errno == EAGAIN || errno ==  EWOULDBLOCK)
                             {
                                 ev.events = EPOLLOUT | EPOLLET;
@@ -156,6 +155,7 @@ char sigbuf[SIGBUFLEN + 1];
                             write_count +=ret;
                             if(sdlist[efd].write.len == 0)
                             {
+                                sdlist[efd].read.len = 0;
                                 mlog("rsponse data done");
                                 break;
                             }
@@ -224,11 +224,11 @@ char sigbuf[SIGBUFLEN + 1];
                          }
 
                     }else{
-                        sdlist[efd].write.len-=ret;
+                        sdlist[efd].write.len -= ret;
                         write_count +=ret;
                         if(sdlist[efd].write.len == 0)
                         {
-                            /*may be we need delete timedata in the timetree*/
+                            sdlist[efd].read.len = 0;
                             break;
                         }
                     }

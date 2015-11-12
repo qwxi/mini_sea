@@ -15,6 +15,7 @@
 extern int  rcvtask(int msgid, void *msg, size_t len, sdinfo *sf);
 
 extern int  dealtask(sdinfo *sf);
+extern int  dealtask2(sdinfo *sf);
 
 extern int  sndtask(int pair, int msgid, void *msg, size_t len);
 

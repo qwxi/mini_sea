@@ -39,6 +39,22 @@ int  dealtask(sdinfo *sf)
     return 0;
 }
 
+int  dealtask2(sdinfo *sf)
+{
+
+    /*add business code here*/
+    char buf[128] = {0};
+
+    /*eg http*/
+    strcpy(buf, "<H1>Welcome here</H1>");
+
+    strcpy(sf->write.buf, buf); 
+    sf->write.len = strlen(buf);
+
+    return 0;
+}
+
+
 int  sndtask(int pair, int msgid, void *msg, size_t len)
 {
     int ret = msgsnd(msgid, msg, len, 0);
